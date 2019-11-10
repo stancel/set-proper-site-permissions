@@ -71,4 +71,4 @@ GPLv3
 Author Information
 ------------------
 
-[Brad Stance](https://github.com/stancel)
+[Brad Stancel](https://github.com/stancel)

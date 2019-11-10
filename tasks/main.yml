@@ -1,0 +1,140 @@
+---
+
+- name: "Set ownership permissions - webserver user as group"
+  file: 
+    path: "{{ nginx_site_setup_web_home }}/{{ item.name }}/{{ item.site_subfolder_used_to_serve_files | default( set_proper_site_permissions_site_subfolder_used_to_serve_files ) }}"
+    state: directory 
+    owner: "{{ item.name }}" 
+    group: "{{ set_proper_site_permissions_webserver_web_group }}" 
+    mode: g+s
+    recurse: yes
+  with_items: '{{ set_proper_site_permissions_site_list }}'
+
+# The 2 at the beginning makes the directory SGID (Set Group ID). 
+# That means any files in the directory automatically will inherit the group of the folder, as opposed to the group of the user putting the file there.
+# The group of this folder should already be set to the webserver's group - ex. www-data
+- name: "Ensure directories are 2755"
+  command: find {{ set_proper_site_permissions_web_home }}/{{ item.name }}/{{ item.site_subfolder_used_to_serve_files }}/ -type d -exec chmod -c 2755 {} \;
+  register: chmod_result
+  changed_when: "chmod_result.stdout != \"\""
+  with_items: '{{ set_proper_site_permissions_site_list }}'
+
+- name: "Ensure files are 0644"
+  command: find {{ set_proper_site_permissions_web_home }}/{{ item.name }}/{{ item.site_subfolder_used_to_serve_files }}/ -type f -exec chmod -c 0644 {} \;
+  register: chmod_result
+  changed_when: "chmod_result.stdout != \"\""
+  with_items: '{{ set_proper_site_permissions_site_list }}'
+
+# Check for STANDARD WordPress installations- item.site_subfolder_used_to_serve_files could be anything, but is likely "www"
+- name: "Check for Standard WordPress"
+  stat: path={{ set_proper_site_permissions_web_home }}/{{ item.name }}/{{ item.site_subfolder_used_to_serve_files }}/wp-config.php
+  register: has_wordpress
+  with_items: '{{ set_proper_site_permissions_site_list }}'
+
+# Set permissions for a STANDARD WordPress Installation that are found
+- name: "Set wp-content permissions"
+  command: chmod g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-content
+  with_items: '{{ has_wordpress.results }}'
+  when: item.stat.exists
+
+# It may need 660 for wp-config.php
+- name: "Set wp-config.php permissions"
+  command: chmod 640 {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-config.php
+  with_items: '{{ has_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set wp-content/themes permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-content/themes
+  with_items: '{{ has_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set wp-content/plugins permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-content/plugins
+  with_items: '{{ has_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set wp-content/mu-plugins permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-content/mu-plugins
+  with_items: '{{ has_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set wp-content/uploads permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-content/uploads
+  with_items: '{{ has_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set wp-content/upgrade permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-content/upgrade
+  with_items: '{{ has_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set wp-content/cache permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-content/cache
+  with_items: '{{ has_wordpress.results }}'
+  when: item.stat.exists
+  ignore_errors: yes
+
+# Check for Bedrock WordPress installations - item.site_subfolder_used_to_serve_files should be == "web" or "current/web"
+- name: "Check for Bedrock WordPress"
+  stat: path={{ set_proper_site_permissions_web_home }}/{{ item.name }}/{{ item.site_subfolder_used_to_serve_files }}/wp/wp-settings.php
+  register: has_bedrock_wordpress
+  with_items: '{{ set_proper_site_permissions_site_list }}'
+
+# Set permissions for a BedRock WordPress Installation that are found
+- name: "Set web/app permissions"
+  command: chmod g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/app
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+
+# It may need 660 for wp-config.php
+- name: "Set wp-config.php permissions"
+  command: chmod 640 {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp-config.php
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set web/wp/wp-content permissions - for good measure"
+  command: chmod g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/wp/wp-content
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set web/app/themes permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/app/themes
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set web/app/plugins permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/app/plugins
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set web/app/mu-plugins permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/app/mu-plugins
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set web/app/uploads permissions"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/app/uploads
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+
+- name: "Set web/app/upgrade permissions - for good measure"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/app/upgrade
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+  ignore_errors: yes
+
+- name: "Set web/app/cache permissions - for good measure"
+  command: chmod -R g+w {{ set_proper_site_permissions_web_home }}/{{ item.item.name }}/{{ item.item.site_subfolder_used_to_serve_files }}/app/cache
+  with_items: '{{ has_bedrock_wordpress.results }}'
+  when: item.stat.exists
+  ignore_errors: yes
+
+##  Great Link: https://www.smashingmagazine.com/2014/05/proper-wordpress-filesystem-permissions-ownerships/
+## Permissions should be:  (assumes owner is sftp user and group )
+##                     664 for files
+##                      - sudo find . -type f -exec chmod 664 {} +
+##                     775 for directories
+##                      - sudo find . -type d -exec chmod 775 {} +
+##                     660 for wp-config 
+##                      - sudo chmod 660 wp-config.php
+##

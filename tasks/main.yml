@@ -2,7 +2,7 @@
 
 - name: "Set ownership permissions - webserver user as group"
   file: 
-    path: "{{ nginx_site_setup_web_home }}/{{ item.name }}/{{ item.site_subfolder_used_to_serve_files | default( set_proper_site_permissions_site_subfolder_used_to_serve_files ) }}"
+    path: "{{ set_proper_site_permissions_web_home }}/{{ item.name }}/{{ item.site_subfolder_used_to_serve_files | default( set_proper_site_permissions_site_subfolder_used_to_serve_files ) }}"
     state: directory 
     owner: "{{ item.name }}" 
     group: "{{ set_proper_site_permissions_webserver_web_group }}" 

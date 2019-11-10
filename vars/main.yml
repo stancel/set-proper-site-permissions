@@ -13,10 +13,8 @@ set_proper_site_permissions_site_list:
 # The document root for the webserver
 #set_proper_site_permissions_web_home: "/var/www"
 
-# The name of the folder created under each website folder that holds the files the webserver uses as the document root for this site. If this is used with Bedrock WordPress then it should be changed to "web" or "current/web".
-#set_proper_site_permissions_site_subfolder_used_to_serve_files: "www"
-
-# The name of the folder created under each website folder that holds the files NginX will serve up in its server block. If this is used with Bedrock WordPress then it should be changed to "web".
+# The name of the folder created under each website folder that holds the files the webserver uses as the document root for this site. 
+# If this is used with Bedrock WordPress then it should be changed to "web" or "current/web".
 #set_proper_site_permissions_site_subfolder_used_to_serve_files: "www"
 
 # The linux group used by your webserver. The default value is "www-data"

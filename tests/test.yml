@@ -2,4 +2,4 @@
 - hosts: localhost
   remote_user: root
   roles:
-    - set-proper-site-permissions
+    - stancel.set_proper_site_permissions

@@ -33,12 +33,6 @@ The name of the folder created under each website folder that holds the files th
 set_proper_site_permissions_site_subfolder_used_to_serve_files: "www"
 ```
 
-The name of the folder created under each website folder that holds the files NginX will serve up in its server block. If this is used with Bedrock WordPress then it should be changed to "web". The default is "www"
-
-```
-set_proper_site_permissions_site_subfolder_used_to_serve_files: "www"
-```
-
 The Linux group used by your webserver. The default value is "www-data"
 
 ```
